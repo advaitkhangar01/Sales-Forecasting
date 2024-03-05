@@ -40,7 +40,3 @@ plt.ylabel('Sales')
 plt.legend()
 plt.show()
 
-# Display forecast and optimal inventory
-print("Forecasted Sales:")
-print(forecast_df)
-print(f"Optimal Inventory Level: {optimal_inventory}")
