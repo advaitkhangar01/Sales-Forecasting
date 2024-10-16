@@ -1,42 +1,20 @@
-# Import necessary libraries
+pip pandas
 import pandas as pd
-import numpy as np
-from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+from statsmodels.tsa.arima.model import ARIMA
 
-# Sample data for historical sales
-data = {
-    'Month': pd.to_datetime(['Jun 2021', 'Jul 2021', 'Aug 2021', 'Sep 2021', 'Oct 2021', 'Nov 2021', 'Dec 2021', 'Jan 2022', 'Feb 2022', 'Mar 2022'], format='%b %Y'),
-    'Sales': [100, 120, 90, 110, 105, 130, 115, 95, 120, 110]
-}
-
-# Create a DataFrame
-df = pd.DataFrame(data)
-df.set_index('Month', inplace=True)
-
-# Simple linear regression for demand forecasting
-X = np.array(range(1, len(df) + 1)).reshape(-1, 1)
-y = df['Sales'].values
-model = LinearRegression().fit(X, y)
-
-# Forecasting for the next three months
-future_months = pd.date_range(start='Apr 2022', periods=3, freq='M')
-future_X = np.array(range(len(df) + 1, len(df) + 4)).reshape(-1, 1)
-forecasted_sales = model.predict(future_X)
-
-# Display forecasted sales
-forecast_df = pd.DataFrame({'Month': future_months, 'Forecasted Sales': forecasted_sales})
-
-# Inventory optimization logic (simple for demonstration)
-optimal_inventory = int(np.mean(forecasted_sales)) + 10
-
-# Visualization of historical sales and forecast
+file_path = 'data.csv'
+data = pd.read_csv(file_path)  
+data['Order Date'] = pd.to_datetime(data['Order Date'])
+monthly_sales = data.groupby(pd.Grouper(key='Order Date', freq='M')).sum()['Sales']
+model = ARIMA(monthly_sales, order=(1, 1, 1))
+model_fit = model.fit()
+forecast = model_fit.forecast(steps=12)
 plt.figure(figsize=(10, 6))
-plt.plot(df.index, df['Sales'], label='Historical Sales')
-plt.plot(forecast_df['Month'], forecast_df['Forecasted Sales'], label='Forecasted Sales', linestyle='dashed', marker='o')
-plt.title('Historical Sales and Forecast')
-plt.xlabel('Month')
+plt.plot(monthly_sales, label='Historical Sales')
+plt.plot(forecast.index, forecast, label='Forecasted Sales', linestyle='--')
+plt.title('Sales Forecast for the Next 12 Months')
+plt.xlabel('Date')
 plt.ylabel('Sales')
 plt.legend()
 plt.show()
-
